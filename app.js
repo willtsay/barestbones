@@ -22,3 +22,14 @@ function joinRoom(room){
   room += 1
   return roomToUse.toString()
 }
+
+roomHandler = {
+  room: 0,
+  joinRoom: function(){
+    roomToJoin = roomHandler.room
+    roomHandler.room+=1
+    return roomToJoin
+  }
+}
+
+// worried about room numbers getting huge?
