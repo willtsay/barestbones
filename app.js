@@ -8,6 +8,9 @@ io.sockets.on('connection', function(socket){
   socket.on('join:room', function(room){
     socket.join(room)
   })
+  socket.on('host:room', function(room){
+    rH.hostRoom(room)
+  })
   socket.on('get:room', function(){
     var rooms = socket.rooms
     socket.emit('get:room', rooms)
@@ -15,24 +18,48 @@ io.sockets.on('connection', function(socket){
   socket.on("send:message:room",function(data){
     io.sockets.in(data.room).emit('send:message:room', data.message)
   })
+  socket.on('disconnect', function(){
+    room = socket.rooms[0]
+    rH.leaveRoom(room)
+  })
 
 })
 
 
+rH = {
+  rooms: {},
+  joinRoom: function(room){
+    var roomNames = Object.keys(rH.rooms)
+    if ($.inArray(room, roomNames) == 0){
+      return socket.emit('join:room:error')
+    } else {
+      rH.rooms[room]+=1
+      socket.join(room)
+    }
+  },
+  hostRoom: function(room){
+    // if the room is in the array of keys, stop
+    var roomNames = Object.keys(rH.rooms)
+    if ($.inArray(room, roomNames) != 0 ){
+      return socket.emit('host:room:error')
+    } else {
+      rH.rooms[room] = 1
+      socket.join(room)
+    }
+    checkRoomExistence(room)
+  },
+  leaveRoom: function(room){
+    if ($.inArray(room, roomNames) != 0){
+      rH.rooms[room]--
+      if (rH.rooms[room] == 0){
+        delete rH.rooms[room]
+      }
+    }
+    socket.leave(socket.rooms)
+  }
+}
 
-
-
-
-// function findClientsSocketByRoomId(roomId) {
-// var res = []
-// , room = io.sockets.adapter.rooms[roomId];
-// if (room) {
-//     for (var id in room) {
-//     res.push(io.sockets.adapter.nsp.connected[id]);
-//     }
-// }
-// return res;
-// }
+// host room vs join room.
 
 // function Room(number){
 //   this.name = "r"+number
