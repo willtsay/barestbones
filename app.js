@@ -55,6 +55,10 @@ io.sockets.on('connection', function(socket){
     var room = socket.rooms[0]
     socket.broadcast.to(room).emit('select:card', index)
   })
+  socket.on('update:board', function(data){
+    var room = socket.rooms[0]
+    socket.broadcast.to(room).emit('update:board', data)
+  })
 })
 
 
