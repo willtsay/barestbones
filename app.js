@@ -22,7 +22,7 @@ io.sockets.on('connection', function(socket){
     io.sockets.in(data.room).emit('send:message:room', data.message)  
   })
   socket.on('disconnect', function(){
-    room = socket.room
+    var room = socket.room
     rH.leaveRoom(room, socket)
   })
   socket.on('send:update:room', function(data){
@@ -30,10 +30,15 @@ io.sockets.on('connection', function(socket){
     io.sockets.in(room).emit('update:room', data)
   })
   socket.on('attempt:set', function(){
-    var data = {}
-    data.currentPlayer = socket.playerId
-    socket.emit('attempt:set', data)
-    io.sockets.in(room).emit('lock:players')
+    var room = socket.rooms[0]
+    if (rH.rooms[room].free){
+      rH.rooms[room].free = false
+      var data = {}
+      data.currentPlayer = socket.playerId
+      socket.emit('attempt:set', data)
+      io.sockets.in(room).emit('lock:players')
+    }
+    
   })
   socket.on('update:timer', function(data){
     var room = socket.rooms[0]
@@ -45,6 +50,7 @@ io.sockets.on('connection', function(socket){
   })
   socket.on('reset:timers', function(data){
     var room = socket.rooms[0]
+    rH.rooms[room].free = true
     io.sockets.in(room).emit('reset:timers', data)
   })
   socket.on('update:points', function(data){
@@ -109,6 +115,7 @@ rH = {
   },
   initializeGame: function(data){
     rH.rooms[data.room] = data.game
+    rH.rooms[data.room].free = true
   },
   syncGame: function(room, socket){
     socket.emit('sync:game', rH.rooms[room])
