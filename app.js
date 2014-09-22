@@ -51,6 +51,10 @@ io.sockets.on('connection', function(socket){
     var room = socket.rooms[0]
     io.sockets.in(room).emit('update:points', data)
   })
+  socket.on('select:card', function(index){
+    var room = socket.rooms[0]
+    socket.broadcast.to(room).emit('select:card', index)
+  })
 })
 
 
