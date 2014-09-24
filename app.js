@@ -1,15 +1,15 @@
 var io = require('socket.io')(process.env.PORT || 8080)
 
-var room = 0
-
 io.sockets.on('connection', function(socket){
   // leaves auto generated room that a socket automatically connects to
   socket.leave(socket.rooms)
-  socket.on('join:room', function(room){
+
+  socket.on('join:room', joinRoom)
+  function joinRoom(room, socket){
     if (rH.joinRoom(room, socket)){
       rH.syncGame(room, socket)      
     }
-  })
+  }
   socket.on('host:room', function(data){
     rH.hostRoom(data, socket)
     rH.initializeGame(data)
@@ -22,8 +22,15 @@ io.sockets.on('connection', function(socket){
     io.sockets.in(data.room).emit('send:message:room', data.message)  
   })
   socket.on('disconnect', function(){
-    var room = socket.room
-    rH.leaveRoom(room, socket)
+    var sroom = socket.room
+    pID = socket.playerId
+    var roomNames = Object.keys(rH.rooms)
+    if (inArray(sroom, roomNames)){
+      rH.rooms[sroom].players[pID].active = false
+    rH.rooms[sroom].players[pID].points = 0
+    io.sockets.in(sroom).emit('room:left', rH.rooms[sroom])
+    rH.leaveRoom(sroom, socket)
+    }    
   })
   socket.on('send:update:room', function(data){
     var room = socket.rooms[0]
@@ -55,6 +62,7 @@ io.sockets.on('connection', function(socket){
   })
   socket.on('update:points', function(data){
     var room = socket.rooms[0]
+    rH.rooms[room].players[socket.playerId].points = data.points
     io.sockets.in(room).emit('update:points', data)
   })
   socket.on('select:card', function(index){
@@ -66,6 +74,7 @@ io.sockets.on('connection', function(socket){
     socket.broadcast.to(room).emit('update:board', data)
   })
 })
+
 
 
 rH = {
