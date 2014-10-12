@@ -15,6 +15,14 @@ io.sockets.on('connection', function(socket){
   socket.on('update:points', updatePoints)
   socket.on('select:card', selectCard)
   socket.on('update:board', updateBoard)
+
+  socket.on('androidPing', androidPing)
+
+  function androidPing(message){
+    socket.emit('returnPing', message+" of goo")
+  }
+
+
   socket.on('disconnect', disconnect)
   function recieveUsername(username){
     socket.username = username
